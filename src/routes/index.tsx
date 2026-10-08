@@ -23,7 +23,7 @@ const WINDOW = 40;
 
 function Index() {
   const [versionIdx, setVersionIdx] = useState(1);
-  const contract = CONTRACTS[versionIdx];
+  const contract = CONTRACTS[versionIdx]!;
   const [mode, setMode] = useState<Mode>("normal");
   const [prices, setPrices] = useState<number[]>([]);
   const [history, setHistory] = useState<number[]>([]);
@@ -219,12 +219,12 @@ function Btn({ children, onClick, danger }: { children: React.ReactNode; onClick
 
 function BreakingChanges({ idx }: { idx: number }) {
   if (idx === 0) return <p className="mt-4 text-sm italic text-muted-foreground">Original issue — no prior version.</p>;
-  const changes = detectChanges(CONTRACTS[idx - 1], CONTRACTS[idx]);
+  const changes = detectChanges(CONTRACTS[idx - 1]!, CONTRACTS[idx]!);
   const breaking = changes.filter((c) => c.kind === "breaking").length;
   return (
     <div className="mt-4 border bg-card p-4">
       <p className="font-mono text-xs">
-        Amendment v{CONTRACTS[idx - 1].version} → v{CONTRACTS[idx].version}:{" "}
+        Amendment v{CONTRACTS[idx - 1]!.version} → v{CONTRACTS[idx]!.version}:{" "}
         <span className={breaking ? "text-seal" : "text-ok"}>{breaking ? `${breaking} BREAKING — consumer re-signature required` : "backward compatible"}</span>
       </p>
       <ul className="mt-2 space-y-1 text-sm">{changes.map((c, i) => (
@@ -259,7 +259,7 @@ function Lineage({ frozen }: { frozen: boolean }) {
   return (
     <svg viewBox="0 0 640 140" className="w-full border bg-card">
       {edges.map(([a, b]) => (
-        <line key={`${a}${b}`} x1={nodes[a].x + 55} y1={nodes[a].y} x2={nodes[b].x - 55} y2={nodes[b].y}
+        <line key={`${a}${b}`} x1={nodes[a!]!.x + 55} y1={nodes[a!]!.y} x2={nodes[b!]!.x - 55} y2={nodes[b!]!.y}
           className={frozen ? "stroke-seal" : "stroke-primary"} strokeWidth={1.5} strokeDasharray={frozen && b > 2 ? "4 4" : undefined} />
       ))}
       {nodes.map((n) => (
