@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CONTRACTS, breachImpact, checkMean, detectChanges, diagnose, generateDbtPr, mean, type Contract,
 } from "@/lib/drift";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -48,17 +49,36 @@ function Index() {
   const healthy = prices.length < 10 || checkMean(liveMean, contract);
 
   useEffect(() => {
+    supabase.from("breach_tickets").select("*").order("created_at", { ascending: false }).limit(20)
+      .then(({ data }) => {
+        if (data) setTickets(data.map((r) => ({
+          id: r.ticket_code, at: r.created_at, observed: Number(r.observed_mean),
+          impact: r.impact_usd, cause: r.cause, version: r.contract_version,
+        })));
+      });
+  }, []);
+
+  useEffect(() => {
     if (prices.length < 10) return;
     setHistory((h) => [...h.slice(-59), liveMean]);
     if (!healthy && !frozen) {
       const goodHistory = history.filter((m) => checkMean(m, contract));
       const lastGood = goodHistory.at(-1) ?? 150;
       setFrozen({ mean: lastGood, history: goodHistory.slice(-60), at: new Date().toLocaleTimeString() });
-      setTickets((ts) => [{
-        id: `SLA-${1040 + ts.length}`, at: new Date().toISOString(), observed: liveMean,
+      const ticket: Ticket = {
+        id: `SLA-${Date.now().toString(36).toUpperCase()}`, at: new Date().toISOString(), observed: liveMean,
         impact: breachImpact(liveMean, contract), cause: diagnose(liveMean, contract).cause, version: contract.version,
-      }, ...ts]);
-      setPr(generateDbtPr(liveMean, contract));
+      };
+      const newPr = generateDbtPr(liveMean, contract);
+      setTickets((ts) => [ticket, ...ts]);
+      setPr(newPr);
+      void (async () => {
+        const { data } = await supabase.from("breach_tickets").insert({
+          ticket_code: ticket.id, contract_version: ticket.version, observed_mean: ticket.observed,
+          impact_usd: ticket.impact, cause: ticket.cause,
+        }).select("id").single();
+        if (data) await supabase.from("fix_prs").insert({ ticket_id: data.id, ...newPr });
+      })();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prices]);
