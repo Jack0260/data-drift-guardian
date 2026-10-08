@@ -260,7 +260,7 @@ function Lineage({ frozen }: { frozen: boolean }) {
     <svg viewBox="0 0 640 140" className="w-full border bg-card">
       {edges.map(([a, b]) => (
         <line key={`${a}${b}`} x1={nodes[a!]!.x + 55} y1={nodes[a!]!.y} x2={nodes[b!]!.x - 55} y2={nodes[b!]!.y}
-          className={frozen ? "stroke-seal" : "stroke-primary"} strokeWidth={1.5} strokeDasharray={frozen && b > 2 ? "4 4" : undefined} />
+          className={frozen ? "stroke-seal" : "stroke-primary"} strokeWidth={1.5} strokeDasharray={frozen && b! > 2 ? "4 4" : undefined} />
       ))}
       {nodes.map((n) => (
         <g key={n.id}>
