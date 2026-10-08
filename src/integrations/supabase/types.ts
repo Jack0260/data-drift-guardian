@@ -14,7 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      breach_tickets: {
+        Row: {
+          cause: string
+          contract_version: string
+          created_at: string
+          id: string
+          impact_usd: number
+          observed_mean: number
+          ticket_code: string
+        }
+        Insert: {
+          cause: string
+          contract_version: string
+          created_at?: string
+          id?: string
+          impact_usd: number
+          observed_mean: number
+          ticket_code: string
+        }
+        Update: {
+          cause?: string
+          contract_version?: string
+          created_at?: string
+          id?: string
+          impact_usd?: number
+          observed_mean?: number
+          ticket_code?: string
+        }
+        Relationships: []
+      }
+      fix_prs: {
+        Row: {
+          branch: string
+          created_at: string
+          diff: string
+          id: string
+          ticket_id: string | null
+          title: string
+        }
+        Insert: {
+          branch: string
+          created_at?: string
+          diff: string
+          id?: string
+          ticket_id?: string | null
+          title: string
+        }
+        Update: {
+          branch?: string
+          created_at?: string
+          diff?: string
+          id?: string
+          ticket_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fix_prs_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "breach_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
